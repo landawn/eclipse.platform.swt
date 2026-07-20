@@ -20,10 +20,24 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.m2e.core.maven2Builder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.eclipse.m2e.core.maven2Nature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.eclipse.pde.PluginNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>.settings/org.eclipse.jdt.core.prefs</name>
+			<type>1</type>
+			<locationURI>SHARED_SETTINGS/org.eclipse.jdt.core.prefs</locationURI>
+		</link>
+	</linkedResources>
 	<filteredResources>
 		<filter>
 			<id>1701266893922</id>
@@ -35,13 +49,6 @@
 			</matcher>
 		</filter>
 	</filteredResources>
-	<linkedResources>
-		<link>
-			<name>.settings/org.eclipse.jdt.core.prefs</name>
-			<type>1</type>
-			<locationURI>SHARED_SETTINGS/org.eclipse.jdt.core.prefs</locationURI>
-		</link>
-	</linkedResources>
 	<variableList>
 		<variable>
 			<name>SHARED_SETTINGS</name>
