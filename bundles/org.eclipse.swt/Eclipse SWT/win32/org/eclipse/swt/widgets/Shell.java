@@ -145,6 +145,10 @@ public class Shell extends Decorations {
 		OS.COLOR_SCROLLBAR,
 	};
 	final static int BRUSHES_SIZE = 32;
+	private static final int COMPACT_SIZE_FRAME = 1;
+	private static final int COMPACT_PADDED_BORDER = 1;
+	private static final int SM_CYSIZEFRAME = 33;
+	private static final int SM_CXPADDEDBORDER = 92;
 	static {
 		WNDCLASS lpWndClass = new WNDCLASS ();
 		OS.GetClassInfo (0, DialogClass, lpWndClass);
@@ -507,6 +511,31 @@ long callWindowProc (long hwnd, int msg, long wParam, long lParam) {
 		return OS.CallWindowProc (DialogProc, hwnd, msg, wParam, lParam);
 	}
 	return OS.DefWindowProc (hwnd, msg, wParam, lParam);
+}
+
+private boolean useCompactTopFrame () {
+	int trim = SWT.TITLE | SWT.CLOSE | SWT.MIN | SWT.MAX | SWT.BORDER | SWT.NO_TRIM;
+	return parent == null && (style & SWT.RESIZE) != 0 && (style & trim) == 0;
+}
+
+private int compactTopFrameReduction () {
+	int dpi = OS.GetDpiForWindow (handle);
+	int nativeTopFrame = OS.GetSystemMetricsForDpi (SM_CYSIZEFRAME, dpi)
+			+ OS.GetSystemMetricsForDpi (SM_CXPADDEDBORDER, dpi);
+	int compactTopFrame = DPIUtil.pointToPixel (COMPACT_SIZE_FRAME, getZoom ())
+			+ DPIUtil.pointToPixel (COMPACT_PADDED_BORDER, getZoom ());
+	return Math.max (0, nativeTopFrame - compactTopFrame);
+}
+
+@Override
+Rectangle computeTrimInPixels (int x, int y, int width, int height) {
+	Rectangle trim = super.computeTrimInPixels (x, y, width, height);
+	if (useCompactTopFrame ()) {
+		int reduction = compactTopFrameReduction ();
+		trim.y += reduction;
+		trim.height -= reduction;
+	}
+	return trim;
 }
 
 void center () {
@@ -2610,6 +2639,22 @@ LRESULT WM_MOVE (long wParam, long lParam) {
 	ToolTip tip = getCurrentToolTip ();
 	if (tip != null) tip.setVisible (false);
 	return result;
+}
+
+@Override
+LRESULT WM_NCCALCSIZE (long wParam, long lParam) {
+	if (!useCompactTopFrame () || lParam == 0) {
+		return super.WM_NCCALCSIZE (wParam, lParam);
+	}
+	long result = callWindowProc (handle, OS.WM_NCCALCSIZE, wParam, lParam);
+	int reduction = compactTopFrameReduction ();
+	if (reduction != 0) {
+		int [] rect = new int [4];
+		OS.MoveMemory (rect, lParam, RECT.sizeof);
+		rect [1] = Math.min (rect [1] - reduction, rect [3]);
+		OS.MoveMemory (lParam, rect, RECT.sizeof);
+	}
+	return new LRESULT (result);
 }
 
 @Override
